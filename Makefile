@@ -38,10 +38,12 @@ OBJS		= kernel/kernel.o \
 			  kernel/protect.o \
 			  kernel/start.o \
 			  kernel/syscall.o \
+			  kernel/systask.o \
 			  kernel/tty.o \
 			  kernel/vsprintf.o \
 			  lib/klib.o \
 			  lib/kliba.o \
+			  lib/misc.o \
 			  lib/string.o 
 			  
 DASMOUTPUT	= kernel.bin.asm

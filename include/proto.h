@@ -61,7 +61,7 @@ PUBLIC void init_prot();
 PUBLIC u32 seg2phys(u16 seg);
 
 /* syscall.asm */
-PUBLIC int get_ticks();
+
 
 /* systask.c */
 PUBLIC void task_sys();
