@@ -15,3 +15,17 @@ boot/loader.bin
 lib/klib.o
 lib/kliba.o
 lib/string.o
+kernel/clock.o
+kernel/console.o
+kernel/global.o
+kernel/i8259.o
+kernel/kernel.o
+kernel/keyboard.o
+kernel/main.o
+kernel/printf.o
+kernel/proc.o
+kernel/protect.o
+kernel/start.o
+kernel/syscall.o
+kernel/tty.o
+kernel/vsprintf.o
