@@ -39,7 +39,7 @@ typedef struct proc
 	u32 pid;				   /* process id passed in from MM */
 	char name[16];		   		/* name of the process */
 
-	int p_flags; 				/* process flags. A proc is runnable iff p_flags==0 */
+	int flags; 					/* process flags. A proc is runnable iff flags==0 */
 
 	message_t *p_msg;
 	int p_recvfrom;

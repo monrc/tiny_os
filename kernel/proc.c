@@ -26,7 +26,7 @@ PUBLIC void schedule()
 
 	for (p = &FIRST_PROC; p <= &LAST_PROC; p++)
 	{
-		if (p->p_flags == 0)
+		if (p->flags == 0)
 		{
 			if (p->ticks > greatest_ticks)
 			{
@@ -40,7 +40,7 @@ PUBLIC void schedule()
 	{
 		for (p = &FIRST_PROC; p <= &LAST_PROC; p++)
 		{
-			if (p->p_flags == 0)
+			if (p->flags == 0)
 			{
 				p->ticks = p->priority;
 			}
@@ -204,17 +204,17 @@ PUBLIC void reset_msg(message_t *p)
  *                                block
  *****************************************************************************/
 /**
- * <Ring 0> This routine is called after `p_flags' has been set (!= 0), it
+ * <Ring 0> This routine is called after `flags' has been set (!= 0), it
  * calls `schedule()' to choose another proc as the `proc_ready'.
  *
- * @attention This routine does not change `p_flags'. Make sure the `p_flags'
+ * @attention This routine does not change `flags'. Make sure the `flags'
  * of the proc to be blocked has been set properly.
  *
  * @param p The proc to be blocked.
  *****************************************************************************/
 PRIVATE void block(proc_t *p)
 {
-	assert(p->p_flags);
+	assert(p->flags);
 	schedule();
 }
 
@@ -223,13 +223,13 @@ PRIVATE void block(proc_t *p)
  *****************************************************************************/
 /**
  * <Ring 0> This is a dummy routine. It does nothing actually. When it is
- * called, the `p_flags' should have been cleared (== 0).
+ * called, the `flags' should have been cleared (== 0).
  *
  * @param p The unblocked proc.
  *****************************************************************************/
 PRIVATE void unblock(proc_t *p)
 {
-	assert(p->p_flags == 0);
+	assert(p->flags == 0);
 }
 
 /*****************************************************************************
@@ -252,7 +252,7 @@ PRIVATE int deadlock(int src, int dest)
 	proc_t *p = proc_table + dest;
 	while (1)
 	{
-		if (p->p_flags & SENDING)
+		if (p->flags & SENDING)
 		{
 			if (p->p_sendto == src)
 			{
@@ -306,7 +306,7 @@ PRIVATE int msg_send(proc_t *current, int dest, message_t *m)
 		panic(">>DEADLOCK<< %s->%s", sender->name, p_dest->name);
 	}
 
-	if ((p_dest->p_flags & RECEIVING) && /* dest is waiting for the msg */
+	if ((p_dest->flags & RECEIVING) && /* dest is waiting for the msg */
 		(p_dest->p_recvfrom == proc2pid(sender) || p_dest->p_recvfrom == ANY))
 	{
 		assert(p_dest->p_msg);
@@ -314,23 +314,23 @@ PRIVATE int msg_send(proc_t *current, int dest, message_t *m)
 
 		phys_copy(va2la(dest, p_dest->p_msg), va2la(proc2pid(sender), m), sizeof(message_t));
 		p_dest->p_msg = 0;
-		p_dest->p_flags &= ~RECEIVING; /* dest has received the msg */
+		p_dest->flags &= ~RECEIVING; /* dest has received the msg */
 		p_dest->p_recvfrom = NO_TASK;
 		unblock(p_dest);
 
-		assert(p_dest->p_flags == 0);
+		assert(p_dest->flags == 0);
 		assert(p_dest->p_msg == 0);
 		assert(p_dest->p_recvfrom == NO_TASK);
 		assert(p_dest->p_sendto == NO_TASK);
-		assert(sender->p_flags == 0);
+		assert(sender->flags == 0);
 		assert(sender->p_msg == 0);
 		assert(sender->p_recvfrom == NO_TASK);
 		assert(sender->p_sendto == NO_TASK);
 	}
 	else
 	{ /* dest is not waiting for the msg */
-		sender->p_flags |= SENDING;
-		assert(sender->p_flags == SENDING);
+		sender->flags |= SENDING;
+		assert(sender->flags == SENDING);
 		sender->p_sendto = dest;
 		sender->p_msg = m;
 
@@ -353,7 +353,7 @@ PRIVATE int msg_send(proc_t *current, int dest, message_t *m)
 
 		block(sender);
 
-		assert(sender->p_flags == SENDING);
+		assert(sender->flags == SENDING);
 		assert(sender->p_msg != 0);
 		assert(sender->p_recvfrom == NO_TASK);
 		assert(sender->p_sendto == dest);
@@ -407,7 +407,7 @@ PRIVATE int msg_receive(proc_t *current, int src, message_t *m)
 
 		p_who_wanna_recv->has_int_msg = 0;
 
-		assert(p_who_wanna_recv->p_flags == 0);
+		assert(p_who_wanna_recv->flags == 0);
 		assert(p_who_wanna_recv->p_msg == 0);
 		assert(p_who_wanna_recv->p_sendto == NO_TASK);
 		assert(p_who_wanna_recv->has_int_msg == 0);
@@ -427,12 +427,12 @@ PRIVATE int msg_receive(proc_t *current, int src, message_t *m)
 			p_from = p_who_wanna_recv->q_sending;
 			copyok = 1;
 
-			assert(p_who_wanna_recv->p_flags == 0);
+			assert(p_who_wanna_recv->flags == 0);
 			assert(p_who_wanna_recv->p_msg == 0);
 			assert(p_who_wanna_recv->p_recvfrom == NO_TASK);
 			assert(p_who_wanna_recv->p_sendto == NO_TASK);
 			assert(p_who_wanna_recv->q_sending != 0);
-			assert(p_from->p_flags == SENDING);
+			assert(p_from->flags == SENDING);
 			assert(p_from->p_msg != 0);
 			assert(p_from->p_recvfrom == NO_TASK);
 			assert(p_from->p_sendto == proc2pid(p_who_wanna_recv));
@@ -445,7 +445,7 @@ PRIVATE int msg_receive(proc_t *current, int src, message_t *m)
 		 */
 		p_from = &proc_table[src];
 
-		if ((p_from->p_flags & SENDING) && (p_from->p_sendto == proc2pid(p_who_wanna_recv)))
+		if ((p_from->flags & SENDING) && (p_from->p_sendto == proc2pid(p_who_wanna_recv)))
 		{
 			/* Perfect, src is sending a message to
 			 * p_who_wanna_recv.
@@ -458,7 +458,7 @@ PRIVATE int msg_receive(proc_t *current, int src, message_t *m)
 
 			while (p)
 			{
-				assert(p_from->p_flags & SENDING);
+				assert(p_from->flags & SENDING);
 
 				if (proc2pid(p) == src) /* if p is the one */
 				{
@@ -469,12 +469,12 @@ PRIVATE int msg_receive(proc_t *current, int src, message_t *m)
 				p = p->next_sending;
 			}
 
-			assert(p_who_wanna_recv->p_flags == 0);
+			assert(p_who_wanna_recv->flags == 0);
 			assert(p_who_wanna_recv->p_msg == 0);
 			assert(p_who_wanna_recv->p_recvfrom == NO_TASK);
 			assert(p_who_wanna_recv->p_sendto == NO_TASK);
 			assert(p_who_wanna_recv->q_sending != 0);
-			assert(p_from->p_flags == SENDING);
+			assert(p_from->flags == SENDING);
 			assert(p_from->p_msg != 0);
 			assert(p_from->p_recvfrom == NO_TASK);
 			assert(p_from->p_sendto == proc2pid(p_who_wanna_recv));
@@ -509,22 +509,22 @@ PRIVATE int msg_receive(proc_t *current, int src, message_t *m)
 
 		p_from->p_msg = 0;
 		p_from->p_sendto = NO_TASK;
-		p_from->p_flags &= ~SENDING;
+		p_from->flags &= ~SENDING;
 
 		unblock(p_from);
 	}
 	else
 	{ /* nobody's sending any msg */
-		/* Set p_flags so that p_who_wanna_recv will not
+		/* Set flags so that p_who_wanna_recv will not
 		 * be scheduled until it is unblocked.
 		 */
-		p_who_wanna_recv->p_flags |= RECEIVING;
+		p_who_wanna_recv->flags |= RECEIVING;
 
 		p_who_wanna_recv->p_msg = m;
 		p_who_wanna_recv->p_recvfrom = src;
 		block(p_who_wanna_recv);
 
-		assert(p_who_wanna_recv->p_flags == RECEIVING);
+		assert(p_who_wanna_recv->flags == RECEIVING);
 		assert(p_who_wanna_recv->p_msg != 0);
 		assert(p_who_wanna_recv->p_recvfrom != NO_TASK);
 		assert(p_who_wanna_recv->p_sendto == NO_TASK);
@@ -578,7 +578,7 @@ PUBLIC void dump_proc(proc_t *p)
 	sprintf(info, "name: %s.  ", p->name);
 	disp_color_str(info, text_color);
 	disp_color_str("\n", text_color);
-	sprintf(info, "p_flags: 0x%x.  ", p->p_flags);
+	sprintf(info, "flags: 0x%x.  ", p->flags);
 	disp_color_str(info, text_color);
 	sprintf(info, "p_recvfrom: 0x%x.  ", p->p_recvfrom);
 	disp_color_str(info, text_color);
