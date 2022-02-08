@@ -12,8 +12,8 @@ PUBLIC int kernel_main()
 {
 	disp_str("-----\"kernel_main\" begins-----\n");
 
-	TASK *p_task = task_table;
-	PROCESS *p_proc = proc_table;
+	task_t *p_task = task_table;
+	proc_t *p_proc = proc_table;
 	char *p_task_stack = task_stack + STACK_SIZE_TOTAL;
 	u16 selector_ldt = SELECTOR_LDT_FIRST;
 	int i;
@@ -38,14 +38,14 @@ PUBLIC int kernel_main()
 			eflags = 0x202; /* IF=1, bit 2 is always 1 */
 		}
 
-		strcpy(p_proc->p_name, p_task->name);
+		strcpy(p_proc->name, p_task->name);
 		p_proc->pid = i;
 		p_proc->ldt_sel = selector_ldt;
 
-		memcpy(&p_proc->ldts[0], &gdt[SELECTOR_KERNEL_CS >> 3], sizeof(DESCRIPTOR));
+		memcpy(&p_proc->ldts[0], &gdt[SELECTOR_KERNEL_CS >> 3], sizeof(descriptor_t));
 		p_proc->ldts[0].attr1 = DA_C | privilege << 5; // change the DPL
 
-		memcpy(&p_proc->ldts[1], &gdt[SELECTOR_KERNEL_DS >> 3], sizeof(DESCRIPTOR));
+		memcpy(&p_proc->ldts[1], &gdt[SELECTOR_KERNEL_DS >> 3], sizeof(descriptor_t));
 		p_proc->ldts[1].attr1 = DA_DRW | privilege << 5; // change the DPL
 
 		p_proc->regs.cs = (0 & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | rpl;

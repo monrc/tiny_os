@@ -4,7 +4,7 @@
 
 #include "protect.h"
 
-typedef struct s_stackframe
+typedef struct stackframe
 {					/* proc_ptr points here		¡ü Low		*/
 	u32 gs;			/* ©·						©¦			*/
 	u32 fs;			/* ©§						©¦			*/
@@ -24,39 +24,53 @@ typedef struct s_stackframe
 	u32 eflags;		/*  ©Ç these are pushed by CPU during interrupt	*/
 	u32 esp;		/*  ©§						©¦			*/
 	u32 ss;			/*  ©¿						©ÛHigh		*/
-} STACK_FRAME;
+} stackframe_t;
 
-typedef struct s_proc
+typedef struct proc
 {
-	STACK_FRAME regs; 			/* process registers saved in stack frame */
+	stackframe_t regs; 			/* process registers saved in stack frame */
 
 	u16 ldt_sel;			   /* gdt selector giving ldt base and limit */
-	DESCRIPTOR ldts[LDT_SIZE]; /* local descriptors for code and data */
+	descriptor_t ldts[LDT_SIZE]; /* local descriptors for code and data */
 
 	int ticks;					/* remained ticks */
 	int priority;
+
 	u32 pid;				   /* process id passed in from MM */
-	char p_name[16];		   /* name of the process */
+	char name[16];		   /* name of the process */
+
+	int p_flags; 				/* process flags. A proc is runnable iff p_flags==0 */
+
+	message_t *p_msg;
+	int p_recvfrom;
+	int p_sendto;
+
+	int has_int_msg; 			/* nonzero if an INTERRUPT occurred when  the task is not ready to deal with it.*/
+	struct proc *q_sending; 	/* queue of procs sending messages to this proc */
+	struct proc *next_sending; /* next proc in the sending queue (q_sending) */
 
 	int nr_tty;
-} PROCESS;
+} proc_t;
 
-typedef struct s_task
+typedef struct task
 {
-	task_f initial_eip;
+	task_handler initial_eip;
 	int stacksize;
 	char name[32];
-} TASK;
+} task_t;
 
-#define NR_TASKS 1	/* Number of tasks */
+#define NR_TASKS 2	/* Number of tasks */
 #define NR_PROCS 3	/* Number of procs */
+#define FIRST_PROC proc_table[0]
+#define LAST_PROC  proc_table[NR_TASKS + NR_PROCS - 1]
 
 /* stacks of tasks */
 #define STACK_SIZE_TTY	 0x8000
+#define STACK_SIZE_SYS	 0x8000
 #define STACK_SIZE_TESTA 0x8000
 #define STACK_SIZE_TESTB 0x8000
 #define STACK_SIZE_TESTC 0x8000
 
-#define STACK_SIZE_TOTAL (STACK_SIZE_TTY + STACK_SIZE_TESTA + STACK_SIZE_TESTC + STACK_SIZE_TESTB)
+#define STACK_SIZE_TOTAL (STACK_SIZE_TTY + STACK_SIZE_SYS + STACK_SIZE_TESTA + STACK_SIZE_TESTC + STACK_SIZE_TESTB)
 
 #endif

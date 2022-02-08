@@ -6,10 +6,10 @@
 #include "protect.h"
 #include "proc.h"
 
-PRIVATE void block(struct proc *p);
-PRIVATE void unblock(struct proc *p);
-PRIVATE int msg_send(struct proc *current, int dest, MESSAGE *m);
-PRIVATE int msg_receive(struct proc *p, int src, MESSAGE *m);
+PRIVATE void block(proc_t *p);
+PRIVATE void unblock(proc_t *p);
+PRIVATE int msg_send(proc_t *current, int dest, message_t *m);
+PRIVATE int msg_receive(proc_t *p, int src, message_t *m);
 PRIVATE int deadlock(int src, int dest);
 
 /*****************************************************************************
@@ -21,7 +21,7 @@ PRIVATE int deadlock(int src, int dest);
  *****************************************************************************/
 PUBLIC void schedule()
 {
-	struct proc *p;
+	proc_t *p;
 	int greatest_ticks = 0;
 
 	for (p = &FIRST_PROC; p < &LAST_PROC; p++)
@@ -56,19 +56,19 @@ PUBLIC void schedule()
  *
  * @param function SEND or RECEIVE
  * @param src_dest To/From whom the message is transferred.
- * @param m        Ptr to the MESSAGE body.
+ * @param m        Ptr to the message_t body.
  * @param p        The caller proc.
  *
  * @return Zero if success.
  *****************************************************************************/
-PUBLIC int sys_sendrec(int function, int src_dest, MESSAGE *m, struct proc *p)
+PUBLIC int sys_sendrec(int function, int src_dest, message_t *m, proc_t *p)
 {
 	assert(k_reenter == 0); /* make sure we are not in ring0 */
 	assert((src_dest >= 0 && src_dest < NR_TASKS + NR_PROCS) || src_dest == ANY || src_dest == INTERRUPT);
 
 	int ret = 0;
 	int caller = proc2pid(p);
-	MESSAGE *mla = (MESSAGE *)va2la(caller, m);
+	message_t *mla = (message_t *)va2la(caller, m);
 	mla->source = caller;
 
 	assert(mla->source != src_dest);
@@ -110,17 +110,17 @@ PUBLIC int sys_sendrec(int function, int src_dest, MESSAGE *m, struct proc *p)
  *
  * @param function  SEND, RECEIVE or BOTH
  * @param src_dest  The caller's proc_nr
- * @param msg       Pointer to the MESSAGE struct
+ * @param msg       Pointer to the message_t struct
  *
  * @return always 0.
  *****************************************************************************/
-PUBLIC int send_recv(int function, int src_dest, MESSAGE *msg)
+PUBLIC int send_recv(int function, int src_dest, message_t *msg)
 {
 	int ret = 0;
 
 	if (function == RECEIVE)
 	{
-		memset(msg, 0, sizeof(MESSAGE));
+		memset(msg, 0, sizeof(message_t));
 	}
 
 	switch (function)
@@ -156,7 +156,7 @@ PUBLIC int send_recv(int function, int src_dest, MESSAGE *msg)
  *
  * @return  The required linear address.
  *****************************************************************************/
-PUBLIC int ldt_seg_linear(struct proc *p, int idx)
+PUBLIC int ldt_seg_linear(proc_t *p, int idx)
 {
 	struct descriptor *d = &p->ldts[idx];
 
@@ -176,7 +176,7 @@ PUBLIC int ldt_seg_linear(struct proc *p, int idx)
  *****************************************************************************/
 PUBLIC void *va2la(int pid, void *va)
 {
-	struct proc *p = &proc_table[pid];
+	proc_t *p = &proc_table[pid];
 
 	u32 seg_base = ldt_seg_linear(p, INDEX_LDT_RW);
 	u32 la = seg_base + (u32)va;
@@ -193,13 +193,13 @@ PUBLIC void *va2la(int pid, void *va)
  *                                reset_msg
  *****************************************************************************/
 /**
- * <Ring 0~3> Clear up a MESSAGE by setting each byte to 0.
+ * <Ring 0~3> Clear up a message_t by setting each byte to 0.
  *
  * @param p  The message to be cleared.
  *****************************************************************************/
-PUBLIC void reset_msg(MESSAGE *p)
+PUBLIC void reset_msg(message_t *p)
 {
-	memset(p, 0, sizeof(MESSAGE));
+	memset(p, 0, sizeof(message_t));
 }
 
 /*****************************************************************************
@@ -214,7 +214,7 @@ PUBLIC void reset_msg(MESSAGE *p)
  *
  * @param p The proc to be blocked.
  *****************************************************************************/
-PRIVATE void block(struct proc *p)
+PRIVATE void block(proc_t *p)
 {
 	assert(p->p_flags);
 	schedule();
@@ -229,7 +229,7 @@ PRIVATE void block(struct proc *p)
  *
  * @param p The unblocked proc.
  *****************************************************************************/
-PRIVATE void unblock(struct proc *p)
+PRIVATE void unblock(proc_t *p)
 {
 	assert(p->p_flags == 0);
 }
@@ -251,7 +251,7 @@ PRIVATE void unblock(struct proc *p)
  *****************************************************************************/
 PRIVATE int deadlock(int src, int dest)
 {
-	struct proc *p = proc_table + dest;
+	proc_t *p = proc_table + dest;
 	while (1)
 	{
 		if (p->p_flags & SENDING)
@@ -295,10 +295,10 @@ PRIVATE int deadlock(int src, int dest)
  *
  * @return Zero if success.
  *****************************************************************************/
-PRIVATE int msg_send(struct proc *current, int dest, MESSAGE *m)
+PRIVATE int msg_send(proc_t *current, int dest, message_t *m)
 {
-	struct proc *sender = current;
-	struct proc *p_dest = proc_table + dest; /* proc dest */
+	proc_t *sender = current;
+	proc_t *p_dest = proc_table + dest; /* proc dest */
 
 	assert(proc2pid(sender) != dest);
 
@@ -314,7 +314,7 @@ PRIVATE int msg_send(struct proc *current, int dest, MESSAGE *m)
 		assert(p_dest->p_msg);
 		assert(m);
 
-		phys_copy(va2la(dest, p_dest->p_msg), va2la(proc2pid(sender), m), sizeof(MESSAGE));
+		phys_copy(va2la(dest, p_dest->p_msg), va2la(proc2pid(sender), m), sizeof(message_t));
 		p_dest->p_msg = 0;
 		p_dest->p_flags &= ~RECEIVING; /* dest has received the msg */
 		p_dest->p_recvfrom = NO_TASK;
@@ -337,7 +337,7 @@ PRIVATE int msg_send(struct proc *current, int dest, MESSAGE *m)
 		sender->p_msg = m;
 
 		/* append to the sending queue */
-		struct proc *p;
+		proc_t *p;
 		if (p_dest->q_sending)
 		{
 			p = p_dest->q_sending;
@@ -378,16 +378,16 @@ PRIVATE int msg_send(struct proc *current, int dest, MESSAGE *m)
  *
  * @return  Zero if success.
  *****************************************************************************/
-PRIVATE int msg_receive(struct proc *current, int src, MESSAGE *m)
+PRIVATE int msg_receive(proc_t *current, int src, message_t *m)
 {
-	struct proc *p_who_wanna_recv = current; /**
+	proc_t *p_who_wanna_recv = current; /**
 											  * This name is a little bit
 											  * wierd, but it makes me
 											  * think clearly, so I keep
 											  * it.
 											  */
-	struct proc *p_from = 0;				 /* from which the message will be fetched */
-	struct proc *prev = 0;
+	proc_t *p_from = 0;				 /* from which the message will be fetched */
+	proc_t *prev = 0;
 	int copyok = 0;
 
 	assert(proc2pid(p_who_wanna_recv) != src);
@@ -398,14 +398,14 @@ PRIVATE int msg_receive(struct proc *current, int src, MESSAGE *m)
 		 * p_who_wanna_recv is ready to handle it.
 		 */
 
-		MESSAGE msg;
+		message_t msg;
 		reset_msg(&msg);
 		msg.source = INTERRUPT;
 		msg.type = HARD_INT;
 
 		assert(m);
 
-		phys_copy(va2la(proc2pid(p_who_wanna_recv), m), &msg, sizeof(MESSAGE));
+		phys_copy(va2la(proc2pid(p_who_wanna_recv), m), &msg, sizeof(message_t));
 
 		p_who_wanna_recv->has_int_msg = 0;
 
@@ -454,7 +454,7 @@ PRIVATE int msg_receive(struct proc *current, int src, MESSAGE *m)
 			 */
 			copyok = 1;
 
-			struct proc *p = p_who_wanna_recv->q_sending;
+			proc_t *p = p_who_wanna_recv->q_sending;
 
 			assert(p); /* p_from must have been appended to the  queue, so the queue must not be NULL */
 
@@ -507,7 +507,7 @@ PRIVATE int msg_receive(struct proc *current, int src, MESSAGE *m)
 		assert(p_from->p_msg);
 
 		/* copy the message */
-		phys_copy(va2la(proc2pid(p_who_wanna_recv), m), va2la(proc2pid(p_from), p_from->p_msg), sizeof(MESSAGE));
+		phys_copy(va2la(proc2pid(p_who_wanna_recv), m), va2la(proc2pid(p_from), p_from->p_msg), sizeof(message_t));
 
 		p_from->p_msg = 0;
 		p_from->p_sendto = NO_TASK;
@@ -539,13 +539,13 @@ PRIVATE int msg_receive(struct proc *current, int src, MESSAGE *m)
 /*****************************************************************************
  *                                dump_proc
  *****************************************************************************/
-PUBLIC void dump_proc(struct proc *p)
+PUBLIC void dump_proc(proc_t *p)
 {
 	char info[STR_DEFAULT_LEN];
 	int i;
 	int text_color = MAKE_COLOR(GREEN, RED);
 
-	int dump_len = sizeof(struct proc);
+	int dump_len = sizeof(proc_t);
 
 	out_byte(CRTC_ADDR_REG, START_ADDR_H);
 	out_byte(CRTC_DATA_REG, 0);
@@ -596,7 +596,7 @@ PUBLIC void dump_proc(struct proc *p)
 /*****************************************************************************
  *                                dump_msg
  *****************************************************************************/
-PUBLIC void dump_msg(const char *title, MESSAGE *m)
+PUBLIC void dump_msg(const char *title, message_t *m)
 {
 	int packed = 0;
 	printl("{%s}<0x%x>{%ssrc:%s(%d),%stype:%d,%s(0x%x, 0x%x, 0x%x, 0x%x, 0x%x, 0x%x)%s}%s", //, (0x%x, 0x%x, 0x%x)}",

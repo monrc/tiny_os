@@ -10,17 +10,17 @@
 #define TTY_FIRST (tty_table)
 #define TTY_END	  (tty_table + NR_CONSOLES)
 
-PRIVATE void init_tty(TTY *p_tty);
-PRIVATE void tty_do_read(TTY *p_tty);
-PRIVATE void tty_do_write(TTY *p_tty);
-PRIVATE void put_key(TTY *p_tty, u32 key);
+PRIVATE void init_tty(tty_t *p_tty);
+PRIVATE void tty_do_read(tty_t *p_tty);
+PRIVATE void tty_do_write(tty_t *p_tty);
+PRIVATE void put_key(tty_t *p_tty, u32 key);
 
 /*======================================================================*
 						   task_tty
  *======================================================================*/
 PUBLIC void task_tty()
 {
-	TTY *p_tty;
+	tty_t *p_tty;
 
 	init_keyboard();
 
@@ -44,7 +44,7 @@ PUBLIC void task_tty()
 /*======================================================================*
 			   init_tty
  *======================================================================*/
-PRIVATE void init_tty(TTY *p_tty)
+PRIVATE void init_tty(tty_t *p_tty)
 {
 	p_tty->inbuf_count = 0;
 	p_tty->p_inbuf_head = p_tty->p_inbuf_tail = p_tty->in_buf;
@@ -55,7 +55,7 @@ PRIVATE void init_tty(TTY *p_tty)
 /*======================================================================*
 				in_process
  *======================================================================*/
-PUBLIC void in_process(TTY *p_tty, u32 key)
+PUBLIC void in_process(tty_t *p_tty, u32 key)
 {
 	char output[2] = {'\0', '\0'};
 	int raw_code;
@@ -114,7 +114,7 @@ PUBLIC void in_process(TTY *p_tty, u32 key)
 /*======================================================================*
 				  tty_do_read
  *======================================================================*/
-PRIVATE void tty_do_read(TTY *p_tty)
+PRIVATE void tty_do_read(tty_t *p_tty)
 {
 	if (is_current_console(p_tty->p_console))
 	{
@@ -125,7 +125,7 @@ PRIVATE void tty_do_read(TTY *p_tty)
 /*======================================================================*
 				  tty_do_write
  *======================================================================*/
-PRIVATE void tty_do_write(TTY *p_tty)
+PRIVATE void tty_do_write(tty_t *p_tty)
 {
 	if (p_tty->inbuf_count)
 	{
@@ -143,7 +143,7 @@ PRIVATE void tty_do_write(TTY *p_tty)
 /*======================================================================*
 				  put_key
 *======================================================================*/
-PRIVATE void put_key(TTY *p_tty, u32 key)
+PRIVATE void put_key(tty_t *p_tty, u32 key)
 {
 	if (p_tty->inbuf_count < TTY_IN_BYTES)
 	{
@@ -160,7 +160,7 @@ PRIVATE void put_key(TTY *p_tty, u32 key)
 /*======================================================================*
 							  tty_write
 *======================================================================*/
-PUBLIC void tty_write(TTY *p_tty, char *buf, int len)
+PUBLIC void tty_write(tty_t *p_tty, char *buf, int len)
 {
 	char *p = buf;
 	int i = len;
@@ -175,7 +175,7 @@ PUBLIC void tty_write(TTY *p_tty, char *buf, int len)
 /*======================================================================*
 							  sys_write
 *======================================================================*/
-PUBLIC int sys_write(char *buf, int len, PROCESS *p_proc)
+PUBLIC int sys_write(char *buf, int len, struct proc *p_proc)
 {
 	tty_write(&tty_table[p_proc->nr_tty], buf, len);
 	return 0;
@@ -207,11 +207,17 @@ PUBLIC int sys_printx(int _unused1, int _unused2, char *s, struct proc *p_proc)
 	 *      - k_reenter == 0.
 	 */
 	if (k_reenter == 0) /* printx() called in Ring<1~3> */
+	{
 		p = va2la(proc2pid(p_proc), s);
+	}	
 	else if (k_reenter > 0) /* printx() called in Ring<0> */
+	{
 		p = s;
+	}
 	else /* this should NOT happen */
+	{
 		p = reenter_err;
+	}
 
 	/**
 	 * @note if assertion fails in any TASK, the system will be halted;

@@ -5,7 +5,7 @@
 #include "protect.h"
 #include "keymap.h"
 
-PRIVATE KB_INPUT kb_in;
+PRIVATE kp_input_t kb_in;
 
 PRIVATE int code_with_E0 = 0;
 PRIVATE int shift_l;	 /* l shift state	*/
@@ -49,7 +49,7 @@ PUBLIC void init_keyboard()
 	scroll_lock = 0;
 	
 	set_leds();
-	put_irq_handler(KEYBOARD_IRQ, keyboard_handler);
+	//put_irq_handler(KEYBOARD_IRQ, keyboard_handler);
 	enable_irq(KEYBOARD_IRQ);
 }
 
@@ -101,7 +101,7 @@ PRIVATE u8 get_byte_from_kbuf() /* 从键盘缓冲区中读取下一个字节 */
 /*======================================================================*
 						   keyboard_read
 *======================================================================*/
-PUBLIC void keyboard_read(TTY *p_tty)
+PUBLIC void keyboard_read(tty_t *p_tty)
 {
 	u8 scan_code;
 	char output[2];

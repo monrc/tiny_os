@@ -5,7 +5,7 @@
 #include "type.h"
 
 /* 存储段描述符/系统段描述符 */
-typedef struct s_descriptor /* 共 8 个字节 */
+typedef struct descriptor /* 共 8 个字节 */
 {
 	u16 limit_low;		 /* Limit */
 	u16 base_low;		 /* Base */
@@ -13,9 +13,9 @@ typedef struct s_descriptor /* 共 8 个字节 */
 	u8 attr1;			 /* P(1) DPL(2) DT(1) TYPE(4) */
 	u8 limit_high_attr2; /* G(1) D(1) 0(1) AVL(1) LimitHigh(4) */
 	u8 base_high;		 /* Base */
-} DESCRIPTOR;
+} descriptor_t;
 
-typedef struct s_gate
+typedef struct gate
 {
 	u16 offset_low;	 /* Offset Low */
 	u16 selector;	 /* Selector */
@@ -26,9 +26,9 @@ typedef struct s_gate
 						  发生时，要复制的双字参数的数量。*/
 	u8 attr;		 /* P(1) DPL(2) DT(1) TYPE(4) */
 	u16 offset_high; /* Offset High */
-} GATE;
+} gate_t;
 
-typedef struct s_tss
+typedef struct tss
 {
 	u32 backlink;
 	u32 esp0; /* stack pointer to use during interrupt */
@@ -57,7 +57,7 @@ typedef struct s_tss
 	u32 ldt;
 	u16 trap;
 	u16 iobase; /* I/O位图基址大于或等于TSS段界限，就表示没有I/O许可位图 */
-} TSS;
+} tss_t;
 
 /* GDT */
 /* 描述符索引 */
@@ -82,18 +82,9 @@ typedef struct s_tss
 
 /* 每个任务有一个单独的 LDT, 每个 LDT 中的描述符个数: */
 #define LDT_SIZE 2
-
-/* 选择子类型值说明 */
-/* 其中, SA_ : Selector Attribute */
-#define SA_RPL_MASK 0xFFFC
-#define SA_RPL0		0
-#define SA_RPL1		1
-#define SA_RPL2		2
-#define SA_RPL3		3
-
-#define SA_TI_MASK 0xFFFB
-#define SA_TIG	   0
-#define SA_TIL	   4
+/* descriptor indices in LDT */
+#define INDEX_LDT_C	 0
+#define INDEX_LDT_RW 1
 
 /* 描述符类型值说明 */
 #define DA_32		0x4000 /* 32 位段				*/
@@ -119,6 +110,18 @@ typedef struct s_tss
 #define DA_386CGate 0x8C /* 386 调用门类型值			*/
 #define DA_386IGate 0x8E /* 386 中断门类型值			*/
 #define DA_386TGate 0x8F /* 386 陷阱门类型值			*/
+
+/* 选择子类型值说明 其中, SA_ : Selector Attribute */
+#define SA_RPL_MASK 0xFFFC
+#define SA_RPL0		0
+#define SA_RPL1		1
+#define SA_RPL2		2
+#define SA_RPL3		3
+
+#define SA_TI_MASK 0xFFFB
+#define SA_TIG	   0
+#define SA_TIL	   4
+
 
 /* 中断向量 */
 #define INT_VECTOR_DIVIDE		0x0
