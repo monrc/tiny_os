@@ -27,6 +27,7 @@ PRIVATE u8 get_byte_from_kbuf();
 PRIVATE void set_leds();
 PRIVATE void kb_wait();
 PRIVATE void kb_ack();
+PUBLIC void keyboard_handler(int irq);
 
 /*======================================================================*
 						   init_keyboard
@@ -47,9 +48,9 @@ PUBLIC void init_keyboard()
 	caps_lock = 0;
 	num_lock = 0;
 	scroll_lock = 0;
-	
+
 	set_leds();
-	//put_irq_handler(KEYBOARD_IRQ, keyboard_handler);
+	put_irq_handler(KEYBOARD_IRQ, keyboard_handler);
 	enable_irq(KEYBOARD_IRQ);
 }
 

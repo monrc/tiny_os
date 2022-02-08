@@ -20,6 +20,7 @@ PUBLIC int kernel_main()
 	u8 privilege;
 	u8 rpl;
 	int eflags;
+	int priority;
 
 	for (i = 0; i < NR_TASKS + NR_PROCS; i++)
 	{
@@ -29,6 +30,7 @@ PUBLIC int kernel_main()
 			privilege = PRIVILEGE_TASK;
 			rpl = RPL_TASK;
 			eflags = 0x1202; /* IF=1, IOPL=1, bit 2 is always 1 */
+			priority = 15;
 		}
 		else
 		{
@@ -36,17 +38,8 @@ PUBLIC int kernel_main()
 			privilege = PRIVILEGE_USER;
 			rpl = RPL_USER;
 			eflags = 0x202; /* IF=1, bit 2 is always 1 */
+			priority = 5;
 		}
-
-		strcpy(p_proc->name, p_task->name);
-		p_proc->pid = i;
-		p_proc->ldt_sel = selector_ldt;
-
-		memcpy(&p_proc->ldts[0], &gdt[SELECTOR_KERNEL_CS >> 3], sizeof(descriptor_t));
-		p_proc->ldts[0].attr1 = DA_C | privilege << 5; // change the DPL
-
-		memcpy(&p_proc->ldts[1], &gdt[SELECTOR_KERNEL_DS >> 3], sizeof(descriptor_t));
-		p_proc->ldts[1].attr1 = DA_DRW | privilege << 5; // change the DPL
 
 		p_proc->regs.cs = (0 & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | rpl;
 		p_proc->regs.ds = (8 & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | rpl;
@@ -59,6 +52,19 @@ PUBLIC int kernel_main()
 		p_proc->regs.esp = (u32)p_task_stack;
 		p_proc->regs.eflags = eflags;
 
+		p_proc->ldt_sel = selector_ldt;
+
+		memcpy(&p_proc->ldts[0], &gdt[SELECTOR_KERNEL_CS >> 3], sizeof(descriptor_t));
+		p_proc->ldts[0].attr1 = DA_C | privilege << 5; // change the DPL
+		memcpy(&p_proc->ldts[1], &gdt[SELECTOR_KERNEL_DS >> 3], sizeof(descriptor_t));
+		p_proc->ldts[1].attr1 = DA_DRW | privilege << 5; // change the DPL
+
+		p_proc->pid = i;
+		strcpy(p_proc->name, p_task->name);
+
+		p_proc->priority = priority;
+		p_proc->ticks = priority;
+
 		p_proc->nr_tty = 0;
 
 		p_task_stack -= p_task->stacksize;
@@ -66,11 +72,6 @@ PUBLIC int kernel_main()
 		p_task++;
 		selector_ldt += 8;	//一个描述符占8个字节
 	}
-
-	proc_table[0].ticks = proc_table[0].priority = 15;
-	proc_table[1].ticks = proc_table[1].priority = 5;
-	proc_table[2].ticks = proc_table[2].priority = 5;
-	proc_table[3].ticks = proc_table[3].priority = 5;
 
 	proc_table[1].nr_tty = 0;
 	proc_table[2].nr_tty = 1;
@@ -130,9 +131,10 @@ void TestA()
 	int i = 0;
 	while (1)
 	{
+		printf("A");
 		// disp_str("A");
 		// disp_int(get_ticks());
-		printf("<Ticks:%x> ", get_ticks());
+		// printf("<Ticks:%x> ", get_ticks());
 		milli_delay(1000);
 	}
 }

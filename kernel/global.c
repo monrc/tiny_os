@@ -24,6 +24,7 @@ u32 k_ticks;
 
 PUBLIC task_t task_table[NR_TASKS] = {
 	{task_tty, STACK_SIZE_TTY, "tty"},
+	//{task_sys, STACK_SIZE_SYS, "SYS"},
 };
 PUBLIC task_t user_proc_table[NR_PROCS] = {
 
@@ -34,6 +35,7 @@ PUBLIC task_t user_proc_table[NR_PROCS] = {
 
 PUBLIC irq_handler irq_table[NR_IRQ];
 PUBLIC system_call sys_call_table[NR_SYS_CALL] = {
+	sys_printx,
 	sys_sendrec,
 };
 

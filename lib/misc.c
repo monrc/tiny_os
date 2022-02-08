@@ -27,12 +27,11 @@ PUBLIC void spin(char *func_name)
  *
  * @param exp       The failure expression itself.
  * @param file      __FILE__
- * @param base_file __BASE_FILE__
  * @param line      __LINE__
  *****************************************************************************/
-PUBLIC void assertion_failure(char *exp, char *file, char *base_file, int line)
+PUBLIC void assertion_failure(char *exp, char *file, int line)
 {
-	printl("%c  assert(%s) failed: file: %s, base_file: %s, ln%d", MAG_CH_ASSERT, exp, file, base_file, line);
+	printl("%c  assert(%s) failed: file: %s, ln%d", MAG_CH_ASSERT, exp, file, line);
 
 	/**
 	 * If assertion fails in a TASK, the system will halt before
