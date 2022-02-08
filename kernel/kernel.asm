@@ -74,8 +74,8 @@ global  hwint15
 
 _start:
 	; 此时内存看上去是这样的（更详细的内存情况在 LOADER.ASM 中有说明）：
-	;              ┃                                    ┃
-	;              ┃                 ...                ┃
+	;              ┃				  ┃
+	;              ┃		...		  ┃
 	;              ┣━━━━━━━━━━━━━━━━━━┫
 	;              ┃■■■■■■Page  Tables■■■■■■┃
 	;              ┃■■■■■(大小由LOADER决定)■■■■┃ PageTblBase
@@ -90,22 +90,22 @@ _start:
 	;       80000h ┣━━━━━━━━━━━━━━━━━━┫
 	;              ┃■■■■■■■■KERNEL■■■■■■■┃ 30400h ← KERNEL 入口 (KernelEntryPointPhyAddr)
 	;       30000h ┣━━━━━━━━━━━━━━━━━━┫
-	;              ┋                 ...                ┋
-	;              ┋                                    ┋
+	;              ┋		...		  ┋
+	;              ┋				  ┋
 	;           0h ┗━━━━━━━━━━━━━━━━━━┛ ← cs, ds, es, fs, ss
 	;
 	;
 	; GDT 以及相应的描述符是这样的：
 	;
-	;		              Descriptors               Selectors
+	;		             Descriptors               Selectors
 	;              ┏━━━━━━━━━━━━━━━━━━┓
-	;              ┃         Dummy Descriptor           ┃
+	;              ┃	Dummy Descriptor ┃
 	;              ┣━━━━━━━━━━━━━━━━━━┫
-	;              ┃         DESC_FLAT_C    (0～4G)     ┃   8h = cs
+	;              ┃	DESC_FLAT_C    (0～4G) ┃   8h = cs
 	;              ┣━━━━━━━━━━━━━━━━━━┫
-	;              ┃         DESC_FLAT_RW   (0～4G)     ┃  10h = ds, es, fs, ss
+	;              ┃	DESC_FLAT_RW   (0～4G) ┃  10h = ds, es, fs, ss
 	;              ┣━━━━━━━━━━━━━━━━━━┫
-	;              ┃         DESC_VIDEO                 ┃  1Bh = gs
+	;              ┃	DESC_VIDEO    ┃  1Bh = gs
 	;              ┗━━━━━━━━━━━━━━━━━━┛
 	;
 	; 注意! 在使用 C 代码的时候一定要保证 ds, es, ss 这几个段寄存器的值是一样的
@@ -243,15 +243,21 @@ hwint15:                ; Interrupt routine for irq 15
 sys_call:				; Interrupt routine for irq 0x90
 	
 	call save
-	push dword [p_proc_ready]
 	sti
+
+	push esi
 	
+	push dword [p_proc_ready]
+	push edx
 	push ecx
 	push ebx
-	call [sys_call_table + eax * 4]
-	add esp, 4 * 3
 
+	call [sys_call_table + eax * 4]
+	add esp, 4 * 4
+	
+	pop esi
 	mov [esi + EAXREG - P_STACKBASE], eax	;将返回值存入进程表，出栈时，恢复eax寄存器值
+	
 	cli
 	ret
 
@@ -331,29 +337,36 @@ exception:
 ;                                   save
 ; ====================================================================================
 save:
-        pushad          ; `.
-        push    ds      ;  |
-        push    es      ;  | 保存原寄存器值
-        push    fs      ;  |
-        push    gs      ; /
-        mov     dx, ss
-        mov     ds, dx
-        mov     es, dx
-		
-		;inc byte [gs:0]		; 改变屏幕第 0 行, 第 0 列的字符
+        pushad       ; `.
+        push ds      ;  |
+        push es      ;  | 保存原寄存器值
+        push fs      ;  |
+        push gs      ; /
 
-        mov     esi, esp                    ;esi = 进程表起始地址
+		;; 注意，从这里开始，一直到 `mov esp, StackTop'，中间坚决不能用 push/pop 指令，
+		;; 因为当前 esp 指向 proc_table 里的某个位置，push 会破坏掉进程表，导致灾难性后果！
+    	mov esi, edx	; 保存 edx，因为 edx 里保存了系统调用的参数，（没用栈，而是用了另一个寄存器 esi)
 
-        inc     dword [k_reenter]           ;k_reenter++;
-        cmp     dword [k_reenter], 0        ;if(k_reenter ==0)
-        jne     .1                          ;{
-        mov     esp, StackTop               ;  mov esp, StackTop <--切换到内核栈
-        push    restart                     ;  push restart
+		mov dx, ss
+        mov ds, dx
+        mov es, dx
+		mov fs, dx
+
+		;inc byte [gs:0]					; 改变屏幕第 0 行, 第 0 列的字符
+
+		mov 	edx, esi					;恢复 edx				
+        mov     esi, esp					;esi = 进程表起始地址
+
+        inc     dword [k_reenter]			;k_reenter++;
+        cmp     dword [k_reenter], 0		;if(k_reenter ==0)
+        jne     .1							;{
+        mov     esp, StackTop				;  mov esp, StackTop <--切换到内核栈
+        push    restart						;  push restart
         jmp     [esi + RETADR - P_STACKBASE];  return;
-.1:                                         ;} else { 已经在内核栈，不需要再切换
-        push    restart_reenter             ;  push restart_reenter
+.1:											;} else { 已经在内核栈，不需要再切换
+        push    restart_reenter				;  push restart_reenter
         jmp     [esi + RETADR - P_STACKBASE];  return;
-                                            ;}
+											;}
 
 
 ; ====================================================================================
