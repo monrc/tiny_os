@@ -22,6 +22,8 @@ PUBLIC void task_sys()
 	message_t msg;
 	while (1)
 	{
+		continue;
+		
 		send_recv(RECEIVE, ANY, &msg);
 		int src = msg.source;
 

@@ -61,7 +61,7 @@ typedef struct task
 
 #define proc2pid(x) (x - proc_table)
 
-#define NR_TASKS 1	/* Number of tasks */
+#define NR_TASKS 2	/* Number of tasks */
 #define NR_PROCS 3	/* Number of procs */
 #define FIRST_PROC proc_table[0]
 #define LAST_PROC  proc_table[NR_TASKS + NR_PROCS - 1]

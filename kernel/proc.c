@@ -82,14 +82,10 @@ PUBLIC int sys_sendrec(int function, int src_dest, message_t *m, proc_t *p)
 	if (function == SEND)
 	{
 		ret = msg_send(p, src_dest, m);
-		if (ret != 0)
-			return ret;
 	}
 	else if (function == RECEIVE)
 	{
 		ret = msg_receive(p, src_dest, m);
-		if (ret != 0)
-			return ret;
 	}
 	else
 	{
@@ -97,6 +93,8 @@ PUBLIC int sys_sendrec(int function, int src_dest, message_t *m, proc_t *p)
 			  "%d (SEND:%d, RECEIVE:%d).",
 			  function, SEND, RECEIVE);
 	}
+
+	return ret;
 }
 
 /*****************************************************************************
@@ -381,12 +379,12 @@ PRIVATE int msg_send(proc_t *current, int dest, message_t *m)
 PRIVATE int msg_receive(proc_t *current, int src, message_t *m)
 {
 	proc_t *p_who_wanna_recv = current; /**
-											  * This name is a little bit
-											  * wierd, but it makes me
-											  * think clearly, so I keep
-											  * it.
-											  */
-	proc_t *p_from = 0;				 /* from which the message will be fetched */
+										 * This name is a little bit
+										 * wierd, but it makes me
+										 * think clearly, so I keep
+										 * it.
+										 */
+	proc_t *p_from = 0;					/* from which the message will be fetched */
 	proc_t *prev = 0;
 	int copyok = 0;
 
