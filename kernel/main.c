@@ -62,6 +62,14 @@ PUBLIC int kernel_main()
 		p_proc->pid = i;
 		strcpy(p_proc->name, p_task->name);
 
+		p_proc->flags = 0;
+		p_proc->recvfrom = NO_TASK;
+		p_proc->sendto = NO_TASK;
+
+		p_proc->has_int_msg = 0;
+		p_proc->q_sending = 0;
+		p_proc->next_sending = 0;
+
 		p_proc->priority = priority;
 		p_proc->ticks = priority;
 
@@ -73,9 +81,9 @@ PUBLIC int kernel_main()
 		selector_ldt += 8;	//一个描述符占8个字节
 	}
 
-	proc_table[1].nr_tty = 0;
-	proc_table[2].nr_tty = 1;
-	proc_table[3].nr_tty = 1;
+	proc_table[NR_TASKS + 0].nr_tty = 0;
+	proc_table[NR_TASKS + 1].nr_tty = 1;
+	proc_table[NR_TASKS + 2].nr_tty = 1;
 
 	k_reenter = 0;
 	k_ticks = 0;
@@ -131,10 +139,10 @@ void TestA()
 	int i = 0;
 	while (1)
 	{
-		printf("A");
+		//printf("A");
 		// disp_str("A");
 		// disp_int(get_ticks());
-		// printf("<Ticks:%x> ", get_ticks());
+		printf("<Ticks:%x> ", get_ticks());
 		milli_delay(1000);
 	}
 }

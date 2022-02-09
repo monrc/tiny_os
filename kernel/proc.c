@@ -254,7 +254,7 @@ PRIVATE int deadlock(int src, int dest)
 	{
 		if (p->flags & SENDING)
 		{
-			if (p->p_sendto == src)
+			if (p->sendto == src)
 			{
 				/* print the chain */
 				p = proc_table + dest;
@@ -262,14 +262,14 @@ PRIVATE int deadlock(int src, int dest)
 				do
 				{
 					assert(p->p_msg);
-					p = proc_table + p->p_sendto;
+					p = proc_table + p->sendto;
 					printl("->%s", p->name);
 				} while (p != proc_table + src);
 				printl("=_=");
 
 				return 1;
 			}
-			p = proc_table + p->p_sendto;
+			p = proc_table + p->sendto;
 		}
 		else
 		{
@@ -307,7 +307,7 @@ PRIVATE int msg_send(proc_t *current, int dest, message_t *m)
 	}
 
 	if ((p_dest->flags & RECEIVING) && /* dest is waiting for the msg */
-		(p_dest->p_recvfrom == proc2pid(sender) || p_dest->p_recvfrom == ANY))
+		(p_dest->recvfrom == proc2pid(sender) || p_dest->recvfrom == ANY))
 	{
 		assert(p_dest->p_msg);
 		assert(m);
@@ -315,23 +315,23 @@ PRIVATE int msg_send(proc_t *current, int dest, message_t *m)
 		phys_copy(va2la(dest, p_dest->p_msg), va2la(proc2pid(sender), m), sizeof(message_t));
 		p_dest->p_msg = 0;
 		p_dest->flags &= ~RECEIVING; /* dest has received the msg */
-		p_dest->p_recvfrom = NO_TASK;
+		p_dest->recvfrom = NO_TASK;
 		unblock(p_dest);
 
 		assert(p_dest->flags == 0);
 		assert(p_dest->p_msg == 0);
-		assert(p_dest->p_recvfrom == NO_TASK);
-		assert(p_dest->p_sendto == NO_TASK);
+		assert(p_dest->recvfrom == NO_TASK);
+		assert(p_dest->sendto == NO_TASK);
 		assert(sender->flags == 0);
 		assert(sender->p_msg == 0);
-		assert(sender->p_recvfrom == NO_TASK);
-		assert(sender->p_sendto == NO_TASK);
+		assert(sender->recvfrom == NO_TASK);
+		assert(sender->sendto == NO_TASK);
 	}
 	else
 	{ /* dest is not waiting for the msg */
 		sender->flags |= SENDING;
 		assert(sender->flags == SENDING);
-		sender->p_sendto = dest;
+		sender->sendto = dest;
 		sender->p_msg = m;
 
 		/* append to the sending queue */
@@ -355,8 +355,8 @@ PRIVATE int msg_send(proc_t *current, int dest, message_t *m)
 
 		assert(sender->flags == SENDING);
 		assert(sender->p_msg != 0);
-		assert(sender->p_recvfrom == NO_TASK);
-		assert(sender->p_sendto == dest);
+		assert(sender->recvfrom == NO_TASK);
+		assert(sender->sendto == dest);
 	}
 
 	return 0;
@@ -409,7 +409,7 @@ PRIVATE int msg_receive(proc_t *current, int src, message_t *m)
 
 		assert(p_who_wanna_recv->flags == 0);
 		assert(p_who_wanna_recv->p_msg == 0);
-		assert(p_who_wanna_recv->p_sendto == NO_TASK);
+		assert(p_who_wanna_recv->sendto == NO_TASK);
 		assert(p_who_wanna_recv->has_int_msg == 0);
 
 		return 0;
@@ -429,13 +429,13 @@ PRIVATE int msg_receive(proc_t *current, int src, message_t *m)
 
 			assert(p_who_wanna_recv->flags == 0);
 			assert(p_who_wanna_recv->p_msg == 0);
-			assert(p_who_wanna_recv->p_recvfrom == NO_TASK);
-			assert(p_who_wanna_recv->p_sendto == NO_TASK);
+			assert(p_who_wanna_recv->recvfrom == NO_TASK);
+			assert(p_who_wanna_recv->sendto == NO_TASK);
 			assert(p_who_wanna_recv->q_sending != 0);
 			assert(p_from->flags == SENDING);
 			assert(p_from->p_msg != 0);
-			assert(p_from->p_recvfrom == NO_TASK);
-			assert(p_from->p_sendto == proc2pid(p_who_wanna_recv));
+			assert(p_from->recvfrom == NO_TASK);
+			assert(p_from->sendto == proc2pid(p_who_wanna_recv));
 		}
 	}
 	else if (src >= 0 && src < NR_TASKS + NR_PROCS)
@@ -445,7 +445,7 @@ PRIVATE int msg_receive(proc_t *current, int src, message_t *m)
 		 */
 		p_from = &proc_table[src];
 
-		if ((p_from->flags & SENDING) && (p_from->p_sendto == proc2pid(p_who_wanna_recv)))
+		if ((p_from->flags & SENDING) && (p_from->sendto == proc2pid(p_who_wanna_recv)))
 		{
 			/* Perfect, src is sending a message to
 			 * p_who_wanna_recv.
@@ -471,13 +471,13 @@ PRIVATE int msg_receive(proc_t *current, int src, message_t *m)
 
 			assert(p_who_wanna_recv->flags == 0);
 			assert(p_who_wanna_recv->p_msg == 0);
-			assert(p_who_wanna_recv->p_recvfrom == NO_TASK);
-			assert(p_who_wanna_recv->p_sendto == NO_TASK);
+			assert(p_who_wanna_recv->recvfrom == NO_TASK);
+			assert(p_who_wanna_recv->sendto == NO_TASK);
 			assert(p_who_wanna_recv->q_sending != 0);
 			assert(p_from->flags == SENDING);
 			assert(p_from->p_msg != 0);
-			assert(p_from->p_recvfrom == NO_TASK);
-			assert(p_from->p_sendto == proc2pid(p_who_wanna_recv));
+			assert(p_from->recvfrom == NO_TASK);
+			assert(p_from->sendto == proc2pid(p_who_wanna_recv));
 		}
 	}
 
@@ -508,7 +508,7 @@ PRIVATE int msg_receive(proc_t *current, int src, message_t *m)
 		phys_copy(va2la(proc2pid(p_who_wanna_recv), m), va2la(proc2pid(p_from), p_from->p_msg), sizeof(message_t));
 
 		p_from->p_msg = 0;
-		p_from->p_sendto = NO_TASK;
+		p_from->sendto = NO_TASK;
 		p_from->flags &= ~SENDING;
 
 		unblock(p_from);
@@ -521,13 +521,13 @@ PRIVATE int msg_receive(proc_t *current, int src, message_t *m)
 		p_who_wanna_recv->flags |= RECEIVING;
 
 		p_who_wanna_recv->p_msg = m;
-		p_who_wanna_recv->p_recvfrom = src;
+		p_who_wanna_recv->recvfrom = src;
 		block(p_who_wanna_recv);
 
 		assert(p_who_wanna_recv->flags == RECEIVING);
 		assert(p_who_wanna_recv->p_msg != 0);
-		assert(p_who_wanna_recv->p_recvfrom != NO_TASK);
-		assert(p_who_wanna_recv->p_sendto == NO_TASK);
+		assert(p_who_wanna_recv->recvfrom != NO_TASK);
+		assert(p_who_wanna_recv->sendto == NO_TASK);
 		assert(p_who_wanna_recv->has_int_msg == 0);
 	}
 
@@ -580,9 +580,9 @@ PUBLIC void dump_proc(proc_t *p)
 	disp_color_str("\n", text_color);
 	sprintf(info, "flags: 0x%x.  ", p->flags);
 	disp_color_str(info, text_color);
-	sprintf(info, "p_recvfrom: 0x%x.  ", p->p_recvfrom);
+	sprintf(info, "recvfrom: 0x%x.  ", p->recvfrom);
 	disp_color_str(info, text_color);
-	sprintf(info, "p_sendto: 0x%x.  ", p->p_sendto);
+	sprintf(info, "sendto: 0x%x.  ", p->sendto);
 	disp_color_str(info, text_color);
 	sprintf(info, "nr_tty: 0x%x.  ", p->nr_tty);
 	disp_color_str(info, text_color);

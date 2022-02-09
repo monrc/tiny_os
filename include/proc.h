@@ -42,8 +42,8 @@ typedef struct proc
 	int flags; 					/* process flags. A proc is runnable iff flags==0 */
 
 	message_t *p_msg;
-	int p_recvfrom;
-	int p_sendto;
+	int recvfrom;
+	int sendto;
 
 	int has_int_msg; 			/* nonzero if an INTERRUPT occurred when  the task is not ready to deal with it.*/
 	struct proc *q_sending; 	/* queue of procs sending messages to this proc */
