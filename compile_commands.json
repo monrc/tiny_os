@@ -9,27 +9,11 @@
             "-fno-builtin",
             "-fno-stack-protector",
             "-o",
-            "kernel/clock.o",
-            "kernel/clock.c"
+            "kernel/keyboard.o",
+            "kernel/keyboard.c"
         ],
         "directory": "/mnt/hgfs/Shared/my_os/project/github/tiny_os",
-        "file": "kernel/clock.c"
-    },
-    {
-        "arguments": [
-            "gcc",
-            "-c",
-            "-I",
-            "include/",
-            "-m32",
-            "-fno-builtin",
-            "-fno-stack-protector",
-            "-o",
-            "kernel/proc.o",
-            "kernel/proc.c"
-        ],
-        "directory": "/mnt/hgfs/Shared/my_os/project/github/tiny_os",
-        "file": "kernel/proc.c"
+        "file": "kernel/keyboard.c"
     },
     {
         "arguments": [
@@ -57,27 +41,11 @@
             "-fno-builtin",
             "-fno-stack-protector",
             "-o",
-            "lib/misc.o",
-            "lib/misc.c"
+            "kernel/global.o",
+            "kernel/global.c"
         ],
         "directory": "/mnt/hgfs/Shared/my_os/project/github/tiny_os",
-        "file": "lib/misc.c"
-    },
-    {
-        "arguments": [
-            "gcc",
-            "-c",
-            "-I",
-            "include/",
-            "-m32",
-            "-fno-builtin",
-            "-fno-stack-protector",
-            "-o",
-            "kernel/main.o",
-            "kernel/main.c"
-        ],
-        "directory": "/mnt/hgfs/Shared/my_os/project/github/tiny_os",
-        "file": "kernel/main.c"
+        "file": "kernel/global.c"
     },
     {
         "arguments": [
@@ -105,11 +73,27 @@
             "-fno-builtin",
             "-fno-stack-protector",
             "-o",
-            "kernel/console.o",
-            "kernel/console.c"
+            "kernel/clock.o",
+            "kernel/clock.c"
         ],
         "directory": "/mnt/hgfs/Shared/my_os/project/github/tiny_os",
-        "file": "kernel/console.c"
+        "file": "kernel/clock.c"
+    },
+    {
+        "arguments": [
+            "gcc",
+            "-c",
+            "-I",
+            "include/",
+            "-m32",
+            "-fno-builtin",
+            "-fno-stack-protector",
+            "-o",
+            "kernel/start.o",
+            "kernel/start.c"
+        ],
+        "directory": "/mnt/hgfs/Shared/my_os/project/github/tiny_os",
+        "file": "kernel/start.c"
     },
     {
         "arguments": [
@@ -126,6 +110,102 @@
         ],
         "directory": "/mnt/hgfs/Shared/my_os/project/github/tiny_os",
         "file": "kernel/systask.c"
+    },
+    {
+        "arguments": [
+            "gcc",
+            "-c",
+            "-I",
+            "include/",
+            "-m32",
+            "-fno-builtin",
+            "-fno-stack-protector",
+            "-o",
+            "kernel/hd.o",
+            "kernel/hd.c"
+        ],
+        "directory": "/mnt/hgfs/Shared/my_os/project/github/tiny_os",
+        "file": "kernel/hd.c"
+    },
+    {
+        "arguments": [
+            "gcc",
+            "-c",
+            "-I",
+            "include/",
+            "-m32",
+            "-fno-builtin",
+            "-fno-stack-protector",
+            "-o",
+            "kernel/main.o",
+            "kernel/main.c"
+        ],
+        "directory": "/mnt/hgfs/Shared/my_os/project/github/tiny_os",
+        "file": "kernel/main.c"
+    },
+    {
+        "arguments": [
+            "gcc",
+            "-c",
+            "-I",
+            "include/",
+            "-m32",
+            "-fno-builtin",
+            "-fno-stack-protector",
+            "-o",
+            "kernel/tty.o",
+            "kernel/tty.c"
+        ],
+        "directory": "/mnt/hgfs/Shared/my_os/project/github/tiny_os",
+        "file": "kernel/tty.c"
+    },
+    {
+        "arguments": [
+            "gcc",
+            "-c",
+            "-I",
+            "include/",
+            "-m32",
+            "-fno-builtin",
+            "-fno-stack-protector",
+            "-o",
+            "fs/main.o",
+            "fs/main.c"
+        ],
+        "directory": "/mnt/hgfs/Shared/my_os/project/github/tiny_os",
+        "file": "fs/main.c"
+    },
+    {
+        "arguments": [
+            "gcc",
+            "-c",
+            "-I",
+            "include/",
+            "-m32",
+            "-fno-builtin",
+            "-fno-stack-protector",
+            "-o",
+            "kernel/proc.o",
+            "kernel/proc.c"
+        ],
+        "directory": "/mnt/hgfs/Shared/my_os/project/github/tiny_os",
+        "file": "kernel/proc.c"
+    },
+    {
+        "arguments": [
+            "gcc",
+            "-c",
+            "-I",
+            "include/",
+            "-m32",
+            "-fno-builtin",
+            "-fno-stack-protector",
+            "-o",
+            "kernel/console.o",
+            "kernel/console.c"
+        ],
+        "directory": "/mnt/hgfs/Shared/my_os/project/github/tiny_os",
+        "file": "kernel/console.c"
     },
     {
         "arguments": [
@@ -169,11 +249,11 @@
             "-fno-builtin",
             "-fno-stack-protector",
             "-o",
-            "kernel/tty.o",
-            "kernel/tty.c"
+            "lib/misc.o",
+            "lib/misc.c"
         ],
         "directory": "/mnt/hgfs/Shared/my_os/project/github/tiny_os",
-        "file": "kernel/tty.c"
+        "file": "lib/misc.c"
     },
     {
         "arguments": [
@@ -190,53 +270,5 @@
         ],
         "directory": "/mnt/hgfs/Shared/my_os/project/github/tiny_os",
         "file": "lib/klib.c"
-    },
-    {
-        "arguments": [
-            "gcc",
-            "-c",
-            "-I",
-            "include/",
-            "-m32",
-            "-fno-builtin",
-            "-fno-stack-protector",
-            "-o",
-            "kernel/start.o",
-            "kernel/start.c"
-        ],
-        "directory": "/mnt/hgfs/Shared/my_os/project/github/tiny_os",
-        "file": "kernel/start.c"
-    },
-    {
-        "arguments": [
-            "gcc",
-            "-c",
-            "-I",
-            "include/",
-            "-m32",
-            "-fno-builtin",
-            "-fno-stack-protector",
-            "-o",
-            "kernel/keyboard.o",
-            "kernel/keyboard.c"
-        ],
-        "directory": "/mnt/hgfs/Shared/my_os/project/github/tiny_os",
-        "file": "kernel/keyboard.c"
-    },
-    {
-        "arguments": [
-            "gcc",
-            "-c",
-            "-I",
-            "include/",
-            "-m32",
-            "-fno-builtin",
-            "-fno-stack-protector",
-            "-o",
-            "kernel/global.o",
-            "kernel/global.c"
-        ],
-        "directory": "/mnt/hgfs/Shared/my_os/project/github/tiny_os",
-        "file": "kernel/global.c"
     }
 ]

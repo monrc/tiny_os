@@ -5,6 +5,7 @@
 #include "proto.h"
 #include "protect.h"
 #include "proc.h"
+#include "fs.h"
 
 PRIVATE void block(proc_t *p);
 PRIVATE void unblock(proc_t *p);
@@ -532,6 +533,41 @@ PRIVATE int msg_receive(proc_t *current, int src, message_t *m)
 	}
 
 	return 0;
+}
+
+/*****************************************************************************
+ *                                inform_int
+ *****************************************************************************/
+/**
+ * <Ring 0> Inform a proc that an interrupt has occured.
+ *
+ * @param task_nr  The task which will be informed.
+ *****************************************************************************/
+PUBLIC void inform_int(int task_nr)
+{
+	struct proc *p = proc_table + task_nr;
+
+	if ((p->flags & RECEIVING) && /* dest is waiting for the msg */
+		((p->recvfrom == INTERRUPT) || (p->recvfrom == ANY)))
+	{
+		p->p_msg->source = INTERRUPT;
+		p->p_msg->type = HARD_INT;
+		p->p_msg = 0;
+		p->has_int_msg = 0;
+		p->flags &= ~RECEIVING; /* dest has received the msg */
+		p->recvfrom = NO_TASK;
+		assert(p->flags == 0);
+		unblock(p);
+
+		assert(p->flags == 0);
+		assert(p->p_msg == 0);
+		assert(p->recvfrom == NO_TASK);
+		assert(p->sendto == NO_TASK);
+	}
+	else
+	{
+		p->has_int_msg = 1;
+	}
 }
 
 /*****************************************************************************

@@ -6,6 +6,7 @@
 #include "proc.h"
 #include "console.h"
 #include "tty.h"
+#include "fs.h"
 
 EXTERN int disp_pos;
 EXTERN u8 gdt_ptr[6]; /* 0~15:Limit  16~47:Base */
@@ -16,6 +17,7 @@ EXTERN gate_t idt[IDT_SIZE];
 EXTERN tss_t tss;
 EXTERN u32 k_reenter;
 EXTERN u32 k_ticks;
+EXTERN int nr_current_console;
 
 extern char task_stack[];
 extern task_t task_table[];
@@ -28,6 +30,8 @@ extern irq_handler irq_table[];
 
 extern tty_t tty_table[NR_CONSOLES];
 extern console_t console_table[NR_CONSOLES];
-extern int nr_current_console;
+
+/* FS */
+extern struct dev_drv_map dd_map[];
 
 #endif

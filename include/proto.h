@@ -24,6 +24,13 @@ PUBLIC int is_current_console(console_t *p_con);
 PUBLIC void select_console(int nr_console);
 PUBLIC void scroll_screen(console_t *p_con, int direction);
 
+/* global.c */
+
+
+/* hd.c */
+PUBLIC void task_hd();
+PUBLIC void hd_handler(int irq);
+
 /* i8259.c */
 PUBLIC void init_8259A();
 PUBLIC void put_irq_handler(int irq, irq_handler handler);
@@ -55,6 +62,7 @@ PUBLIC void reset_msg(message_t *p);
 PUBLIC void dump_msg(const char *title, message_t *m);
 PUBLIC void dump_proc(struct proc *p);
 PUBLIC int send_recv(int function, int src_dest, message_t *msg);
+PUBLIC void inform_int(int task_nr);
 
 /* protect.c */
 PUBLIC void init_prot();
@@ -91,9 +99,22 @@ PUBLIC void disable_irq(int irq);
 PUBLIC void enable_irq(int irq);
 PUBLIC void disable_int();
 PUBLIC void enable_int();
+PUBLIC void port_read(u16 port, void *buf, int n);
+PUBLIC void port_write(u16 port, void *buf, int n);
+PUBLIC void glitter(int row, int col);
+
 
 /* misc.c */
 PUBLIC void spin(char *func_name);
+
+/*======================================================================*
+							   fs folder
+ *======================================================================*/
+/* main.c */
+PUBLIC void task_fs();
+
+
+
 
 /* 以下是系统调用相关 */
 

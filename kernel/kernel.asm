@@ -147,7 +147,7 @@ csinit:		; “这个跳转指令强制使用刚刚初始化的结构”——<<OS:D&I 2nd>> P90.
 		or	al, (1 << %1)		;  | 屏蔽当前中断
 		out	INT_M_CTLMASK, al	; /
         
-		mov	al, EOI				; `. reenable
+		mov	al, EOI				; `. 置EOI位
 		out	INT_M_CTL, al		; /  master 8259
 
 		sti					;CPU在响应中断的过程中会自动关中断，这句之后就允许响应新的中断
@@ -198,10 +198,29 @@ hwint07:                ; Interrupt routine for irq 7 (printer)
 
 ; ---------------------------------
 %macro  hwint_slave     1
-        push	%1
-        call	spurious_irq
-        add		esp, 4
-        hlt
+	call save
+
+	in	al, INT_S_CTLMASK	; `.
+	or	al, (1 << (%1 - 8))	;  | 屏蔽当前中断
+	out	INT_S_CTLMASK, al	; /
+	
+	mov	al, EOI				; `. 置EOI位
+	out	INT_M_CTL, al		; /  master 8259
+	nop						; `. 置EOI位(slave)
+	out	INT_S_CTL, al		; /  slave和master都要置EOI
+	
+	sti					;CPU在响应中断的过程中会自动关中断，这句之后就允许响应新的中断
+	push    %1						; `.
+	call    [irq_table + 4 * %1]	;  | 中断处理程序
+	pop	ecx							; /
+	cli 				;禁止中断
+	
+	
+	in	al, INT_S_CTLMASK	; `.
+	and	al, ~(1 << (%1 - 8));  | 恢复接受当前中断
+	out	INT_S_CTLMASK, al	; /
+
+	ret						;重入时跳到 restart_reenter,通常情况下到 restart
 %endmacro
 ; ---------------------------------
 

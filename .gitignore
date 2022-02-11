@@ -47,3 +47,7 @@ kernel.bin
 .cache/clangd/index/string.h.57F6ED74E6139879.idx
 .cache/clangd/index/tty.h.4290C7881932AE5F.idx
 .cache/clangd/index/type.h.67F436503E544026.idx
+.cache/clangd/index/fs.h.1E83249EC3528904.idx
+.cache/clangd/index/hd.c.4CBF234CD2E1E588.idx
+.cache/clangd/index/hd.h.E752A86D3B8E1569.idx
+.cache/clangd/index/main.c.ED83253C528A73AD.idx

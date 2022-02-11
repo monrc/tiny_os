@@ -26,10 +26,12 @@ DASMFLAGS	= -u -o $(ENTRYPOINT) -e $(ENTRYOFFSET)
 OSBOOT		= boot/boot.bin
 OSLOADER	= boot/loader.bin
 OSKERNEL	= kernel.bin
+
 OBJS		= kernel/kernel.o \
 			  kernel/clock.o \
 			  kernel/console.o \
 			  kernel/global.o \
+			  kernel/hd.o \
 			  kernel/i8259.o \
 			  kernel/keyboard.o \
 			  kernel/main.o \
@@ -41,10 +43,11 @@ OBJS		= kernel/kernel.o \
 			  kernel/systask.o \
 			  kernel/tty.o \
 			  kernel/vsprintf.o \
+			  fs/main.o \
 			  lib/klib.o \
 			  lib/kliba.o \
 			  lib/misc.o \
-			  lib/string.o 
+			  lib/string.o
 			  
 DASMOUTPUT	= kernel.bin.asm
 
