@@ -70,3 +70,12 @@ kernel.bin
 .cache/clangd/index/stdio.h.AE8F9A49D07B38D9.idx
 .cache/clangd/index/tty.h.5826271881843DD7.idx
 .cache/clangd/index/vsprintf.c.EB9B1A801174DF68.idx
+fs/main.o
+fs/misc.o
+fs/open.o
+kernel/hd.o
+lib/close.o
+lib/open.o
+lib/printf.o
+lib/syscall.o
+lib/vsprintf.o
