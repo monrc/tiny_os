@@ -2,6 +2,8 @@
 #ifndef _OS_CONST_H_
 #define _OS_CONST_H_
 
+#include "config.h"
+
 /* the assert macro */
 #define ASSERT
 #ifdef ASSERT
@@ -23,6 +25,11 @@ void assertion_failure(char *exp, char *file, int line);
 #define PRIVATE static /* PRIVATE x limits the scope of x */
 
 #define STR_DEFAULT_LEN 1024
+
+/* max() & min() */
+#define	max(a,b)	((a) > (b) ? (a) : (b))
+#define min(a, b)	((a) < (b) ? (a) : (b))
+
 /* Color */
 /*
  * e.g. MAKE_COLOR(BLUE, RED)
@@ -188,21 +195,14 @@ enum msgtype
 #define DEV_HD		 3
 #define DEV_CHAR_TTY 4
 #define DEV_SCSI	 5
+
 /* make device number from major and minor numbers */
 #define MAJOR_SHIFT	   8
 #define MAKE_DEV(a, b) ((a << MAJOR_SHIFT) | b)
+
 /* separate major and minor numbers from device number */
 #define MAJOR(x) ((x >> MAJOR_SHIFT) & 0xFF)
 #define MINOR(x) (x & 0xFF)
-
-/* device numbers of hard disk */
-#define MINOR_hd1a 0x10
-#define MINOR_hd2a 0x20
-#define MINOR_hd2b 0x21
-#define MINOR_hd3a 0x30
-#define MINOR_hd4a 0x40
-
-#define ROOT_DEV MAKE_DEV(DEV_HD, MINOR_BOOT) /* 3, 0x21 */
 
 #define INVALID_INODE 0
 #define ROOT_INODE	  1
@@ -214,7 +214,7 @@ enum msgtype
 #define NR_PRIM_PER_DRIVE (NR_PART_PER_DRIVE + 1)
 
 /**
- * @def MAX_PRIM_DEV
+ * @def MAX_PRIM
  * Defines the max minor number of the primary partitions.
  * If there are 2 disks, prim_dev ranges in hd[0-9], this macro will
  * equals 9.
@@ -222,6 +222,12 @@ enum msgtype
 #define MAX_PRIM (MAX_DRIVES * NR_PRIM_PER_DRIVE - 1)
 
 #define MAX_SUBPARTITIONS (NR_SUB_PER_DRIVE * MAX_DRIVES)
+
+/* device numbers of hard disk */
+#define MINOR_hd1a 0x10
+#define MINOR_hd2a (MINOR_hd1a + NR_SUB_PER_PART)
+
+#define ROOT_DEV MAKE_DEV(DEV_HD, MINOR_BOOT)
 
 #define P_PRIMARY  0
 #define P_EXTENDED 1

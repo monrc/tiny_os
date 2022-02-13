@@ -43,7 +43,6 @@ PUBLIC void init_clock()
 {
 	/* ³õÊ¼»¯ 8253 PIT */
 	out_byte(TIMER_MODE, RATE_GENERATOR);
-
 	out_byte(TIMER0, (u8)(TIMER_FREQ / HZ));
 	out_byte(TIMER0, (u8)((TIMER_FREQ / HZ) >> 8));
 
