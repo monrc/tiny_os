@@ -32,7 +32,7 @@ PUBLIC void task_sys()
 				send_recv(SEND, src, &msg);
 				break;
 			default:
-				panic("unknown msg type");
+				//panic("unknown msg type");
 				break;
 		}
 	}

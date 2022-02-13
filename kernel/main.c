@@ -4,6 +4,7 @@
 #include "string.h"
 #include "proto.h"
 #include "protect.h"
+#include "stdio.h"
 
 /*======================================================================*
 							kernel_main
@@ -16,7 +17,7 @@ PUBLIC int kernel_main()
 	proc_t *p_proc = proc_table;
 	char *p_task_stack = task_stack + STACK_SIZE_TOTAL;
 	u16 selector_ldt = SELECTOR_LDT_FIRST;
-	int i;
+	int i, j;
 	u8 privilege;
 	u8 rpl;
 	int eflags;
@@ -75,10 +76,15 @@ PUBLIC int kernel_main()
 
 		p_proc->nr_tty = 0;
 
+		for (j = 0; j < NR_FILES; j++)
+		{
+			p_proc->filp[j] = 0;
+		}
+
 		p_task_stack -= p_task->stacksize;
 		p_proc++;
 		p_task++;
-		selector_ldt += 8;	//一个描述符占8个字节
+		selector_ldt += 8; //一个描述符占8个字节
 	}
 
 	proc_table[NR_TASKS + 0].nr_tty = 0;
@@ -130,7 +136,6 @@ PUBLIC void panic(const char *fmt, ...)
 	__asm__ __volatile__("ud2");
 }
 
-
 /*======================================================================*
 							   TestA
  *======================================================================*/
@@ -139,10 +144,14 @@ void TestA()
 	int i = 0;
 	while (1)
 	{
-		//printf("A");
+		// printf("A");
 		// disp_str("A");
 		// disp_int(get_ticks());
-		printf("<Ticks:%x> ", get_ticks());
+		int fd = open("/blah", O_CREAT);
+		printf("fd: %d\n", fd);
+		close(fd);
+		spin("TestA");
+
 		milli_delay(1000);
 	}
 }
@@ -172,4 +181,3 @@ void TestC()
 		milli_delay(500);
 	}
 }
-

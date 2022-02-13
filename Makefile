@@ -17,8 +17,8 @@ DASM	= ndisasm
 CC		= gcc
 LD		= ld
 ASMBFLAGS	= -I boot/include/
-ASMKFLAGS	= -I include/ -f elf
-CFLAGS		= -I include/ -c -m32 -fno-builtin -fno-stack-protector
+ASMKFLAGS	= -I include/ -I include/sys/ -f elf
+CFLAGS		= -I include/ -I include/sys/ -c -m32 -fno-builtin -fno-stack-protector
 LDFLAGS		= -m elf_i386 -s -Ttext $(ENTRYPOINT)
 DASMFLAGS	= -u -o $(ENTRYPOINT) -e $(ENTRYOFFSET)
 
@@ -35,19 +35,23 @@ OBJS		= kernel/kernel.o \
 			  kernel/i8259.o \
 			  kernel/keyboard.o \
 			  kernel/main.o \
-			  kernel/printf.o \
 			  kernel/proc.o \
 			  kernel/protect.o \
 			  kernel/start.o \
-			  kernel/syscall.o \
 			  kernel/systask.o \
 			  kernel/tty.o \
-			  kernel/vsprintf.o \
 			  fs/main.o \
+			  fs/misc.o \
+			  fs/open.o \
+			  lib/close.o \
 			  lib/klib.o \
 			  lib/kliba.o \
 			  lib/misc.o \
-			  lib/string.o
+			  lib/open.o \
+			  lib/printf.o \
+			  lib/string.o \
+			  lib/syscall.o \
+			  lib/vsprintf.o \
 			  
 DASMOUTPUT	= kernel.bin.asm
 

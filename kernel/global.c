@@ -72,3 +72,11 @@ struct dev_drv_map dd_map[] = {
  */
 PUBLIC u8 *fsbuf = (u8 *)0x600000;
 PUBLIC const int FSBUF_SIZE = 0x100000;
+
+PUBLIC struct file_desc f_desc_table[NR_FILE_DESC];
+PUBLIC struct inode inode_table[NR_INODE];
+PUBLIC struct super_block super_block[NR_SUPER_BLOCK];
+PUBLIC message_t fs_msg;
+PUBLIC struct proc *pcaller;
+PUBLIC struct inode *root_inode;
+PUBLIC struct dev_drv_map dd_map[];
